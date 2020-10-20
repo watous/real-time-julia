@@ -3,6 +3,7 @@
 from math import *
 from random import choice
 from tkinter import *
+from tkinter.filedialog import asksaveasfilename
 from collections import deque
 from sortedcontainers import SortedList
 from PIL import Image, ImageTk
@@ -65,13 +66,18 @@ class App:
         self.paused = True
         c = self.c
         x, y = c.real, c.imag
-        name = "prisoner_set_c~{:.2f}{:+.2f}i".format(x, y)
-        path = "images/{}.png".format(name)
-        img = create_image(c, iterations=100)
-        img.save(path, format="PNG")
+        default_name = "prisoner_set_{:.2f}{:+.2f}i".format(x,y)
+        name = asksaveasfilename(filetypes=[("PNG image", "*.png"), ("All files", "*.*")],
+                             defaultextension=".png",
+                             initialfile=default_name)
+        if name == "":
+            print("canceled")
+        else:
+            img = create_image(c, iterations=100)
+            img.save(name)
+            print("finished")
         self.paused = False
         self.drawing_loop()
-        print("finished")
 
     def mandelbrot_image(self):
         img = Image.open("mandelbrot.png") #obrázek mandelbrot setu ve čtverci max(abs(x),abs(y))=2
@@ -103,13 +109,13 @@ class App:
     def mousemove(self, event):
         x = event.x; y = event.y
         x, y = self.to_plane_coords(x, y)
-        self.label["text"] = "myš: {: .2f}{:+.2f}i      c = {: .2f}{:+.2f}i".format(x, y, self.c.real, self.c.imag)
+        self.label["text"] = "pointer: {: .2f}{:+.2f}i      c = {: .2f}{:+.2f}i".format(x, y, self.c.real, self.c.imag)
 
     def drag(self, event):
         x = event.x; y = event.y
         x, y = self.to_plane_coords(x, y)
         self.c = x + y*1j
-        self.label["text"] = "myš: {: .2f}{:+.2f}i      c = {: .2f}{:+.2f}i".format(x, y, self.c.real, self.c.imag)
+        self.label["text"] = "pointer: {: .2f}{:+.2f}i      c = {: .2f}{:+.2f}i".format(x, y, self.c.real, self.c.imag)
         self.z = 50 +1j
         self.reset_points()
 
@@ -122,7 +128,7 @@ class App:
             self.canvas.delete(self.points.popleft())
             
     def leave(self, event):
-        self.label["text"] = "kliknutím změň c      c = {: .2f}{:+.2f}i".format(self.c.real, self.c.imag)
+        self.label["text"] = "click to set c            c = {: .2f}{:+.2f}i".format(self.c.real, self.c.imag)
     
     def drawing_loop(self):
         if self.paused:
@@ -137,7 +143,11 @@ class App:
         
 
 x = Tk()
-app = App(x, 600, 600, max_points=30000, approach=50, points_per_frame=800)
+app = App(x, 600, 600,
+          max_points=20000, #snížit, pokud se to seká, zvýšit, pokud se to nevykresluje dost 
+          approach=50, #zvýšit, pokud ze zobrazují body zjevně mimo julia set, jinak klidně snížit
+          points_per_frame=500 #snížit, pokud se to seká nebo se Tk okno vůbec nenačte, zvýšit, pokud se to nevykresluje dost rychle
+          )
 app.run()
 
 """
