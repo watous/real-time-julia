@@ -22,7 +22,6 @@ def create_image(c, width=800, height=800,
             for i in range(iterations):
                 z = z**2 + c
                 if abs(z) > abs_limit: #escapee
-                    #color = escapee_color
                     color = tuple((escapee_color[j]+prisoner_color[j]*i)//(i+1) for j in range(4))
                     pixel_list.append(color)
                     break
