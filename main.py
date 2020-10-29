@@ -4,7 +4,6 @@ from math import *
 from random import choice
 from tkinter import *
 from tkinter.filedialog import asksaveasfilename
-from collections import deque
 from sortedcontainers import SortedList
 from PIL import Image, ImageTk
 from image_export import create_image
@@ -16,13 +15,16 @@ def iteration(z, c):
 def derivative(z):
     return 2*abs(z)
 
+#press ctrl+s to export the prisoner set of the current Julia set as a bitmap (PNG)
+
 class App:
-    #!! osa y vede dolů
+    #!! y axis points down
     def __init__(self, root, width, height, scale=None,
-                  max_points=100000, #snížit, pokud se to seká, zvýšit, pokud se to nevykresluje dost 
-                  approach=50, #zvýšit, pokud ze zobrazují body mimo julia set, jinak klidně snížit
+                  point_limit=50000, #decrease if response for click is too delayed after you have not clicked for some time,
+                                     #increase if Julia sets aren't drawn thoroughly enough even after some time
+                  approach=50, #increase if you see points clearly out of JS, decrease otherwise
                   center_x=0, center_y=0,
-                  points_per_frame=1000 #snížit, pokud se to seká nebo se Tk okno vůbec nenačte, zvýšit, pokud se to nevykresluje dost rychle
+                  points_per_frame=1000 #decrease if it lags, increase if Julia sets aren't drawn quickly enough
                   ):
         self.root = root
         self.width = width
@@ -30,9 +32,9 @@ class App:
         self.scale = scale if scale is not None else min(self.width, self.height) // 4
         self.z = 50 +1j
         self.c = 0
-        self.points = deque()
+        self.points = []
         self.to_draw = SortedList([(self.z, 0)], key = lambda x:-x[1])
-        self.max_points = max_points
+        self.point_limit = point_limit
         self.approach = approach
         self.center_x = center_x
         self.center_y = center_y
@@ -80,7 +82,7 @@ class App:
         self.drawing_loop()
 
     def mandelbrot_image(self):
-        img = Image.open("mandelbrot.png") #obrázek mandelbrot setu ve čtverci max(abs(x),abs(y))=2
+        img = Image.open("mandelbrot.png") #image of mandelbrot set in max(abs(x),abs(y))=2 square
         img = img.resize((4*self.scale, 4*self.scale))
         img = ImageTk.PhotoImage(img)
         self.mandelbrot = img
@@ -99,8 +101,6 @@ class App:
         return(plane_x, plane_y)
     
     def add_point(self, z):
-        if len(self.points) >= self.max_points:
-            self.canvas.delete(self.points.popleft())
         x, y = z.real, z.imag
         x, y = self.to_canvas_coords(x, y)
         new_point = self.canvas.create_rectangle((x,y,x,y))
@@ -125,7 +125,7 @@ class App:
         self.to_draw.clear()
         self.to_draw.add((self.z, 0))
         while len(self.points) > 0:
-            self.canvas.delete(self.points.popleft())
+            self.canvas.delete(self.points.pop())
             
     def leave(self, event):
         self.label["text"] = "click to set c            c = {: .2f}{:+.2f}i".format(self.c.real, self.c.imag)
@@ -133,20 +133,21 @@ class App:
     def drawing_loop(self):
         if self.paused:
             return
+        if len(self.points) < self.point_limit:
+            for i in range(self.points_per_frame):
+                point = self.to_draw.pop()
+                self.add_point(point[0])
+                for new_z in iteration(point[0], self.c):
+                    new_derivative = point[1] + log(derivative(new_z))
+                    self.to_draw.add((new_z, new_derivative))
         self.root.after(20, self.drawing_loop)
-        for i in range(self.points_per_frame):
-            point = self.to_draw.pop()
-            self.add_point(point[0])
-            for new_z in iteration(point[0], self.c):
-                new_derivative = point[1] + log(derivative(new_z))
-                self.to_draw.add((new_z, new_derivative))
         
 
 x = Tk()
 app = App(x, 600, 600,
-          max_points=20000, #snížit, pokud se to seká, zvýšit, pokud se to nevykresluje dost 
-          approach=50, #zvýšit, pokud ze zobrazují body zjevně mimo julia set, jinak klidně snížit
-          points_per_frame=500 #snížit, pokud se to seká nebo se Tk okno vůbec nenačte, zvýšit, pokud se to nevykresluje dost rychle
+          point_limit=50000, 
+          approach=50, 
+          points_per_frame=1000 
           )
 app.run()
 
