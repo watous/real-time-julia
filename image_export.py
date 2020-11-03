@@ -6,7 +6,7 @@ def create_image(c, width=800, height=800,
                   xleft=-2, xright=2,
                   ytop=2, ybottom=-2,
                   iterations=500,
-                  prisoner_color=(0,0,0,255), escapee_color=(255,255,255,0)
+                  prisoner_color=(0,0,0,255), escapee_color=(0,0,0,0)
                   ):
 
 
@@ -22,7 +22,8 @@ def create_image(c, width=800, height=800,
             for i in range(iterations):
                 z = z**2 + c
                 if abs(z) > abs_limit: #escapee
-                    color = tuple((escapee_color[j]+prisoner_color[j]*i)//(i+1) for j in range(4))
+                    fraction = 1-log(i+1)/log(iterations)
+                    color = tuple(int(escapee_color[j]*fraction+prisoner_color[j]*(1-fraction)) for j in range(4))
                     pixel_list.append(color)
                     break
             else:
