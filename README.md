@@ -6,3 +6,4 @@ Requirements:
 sortedcontainers
 PIL
 ```
+![Running example GIF](/images/example.gif)
