@@ -5,7 +5,7 @@ Press <kbd>ctrl</kbd>+<kbd>S</kbd> to export the prisoner set as a bitmap (PNG).
 
 Requirements:
 ```
-pygame>=2.0.0
+pygame
 sortedcontainers
 Pillow #necessary for image export only
 ```
