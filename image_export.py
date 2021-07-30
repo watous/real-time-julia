@@ -35,7 +35,7 @@ def create_image(c, width=800, height=800,
 
 if __name__ == "__main__":
     c = eval(input("c = "))
-    PATH = "../output/julia_set.png"
+    PATH = "images/prisoner_set_{:.2f}{:+.2f}i.png".format(c.real, c.imag)
     img = create_image(c)
     img.save(PATH, format="PNG")
 

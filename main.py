@@ -86,8 +86,8 @@ class App:
                 elif event.type == pygame.MOUSEMOTION:
                     self.motion = event
                 elif event.type == pygame.WINDOWLEAVE:
-                    self.leave(event)
                     self.motion = self.drag = None
+                    self.update_label()
                     break
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     self.update_c(event)
@@ -160,7 +160,7 @@ class App:
     def mousemotion(self, event):
         x,y = event.pos
         x,y = self.to_plane_coords(x,y)
-        self.update_label("pointer: {: .2f}{:+.2f}i".format(x,y),"c = {: .2f}{:+.2f}i".format(self.c.real, self.c.imag))
+        self.update_label()
 
     def update_c(self, event):
         x,y = event.pos
@@ -177,13 +177,17 @@ class App:
         self.to_draw.add((z, 0))
         self.canvas.fill((255,255,255))
         self.canvas.blit(pygame.transform.smoothscale(self.mandelbrot, (4*self.scale, 4*self.scale)), self.to_canvas_coords(-2,2))
-        self.update_label("pointer: {: .2f}{:+.2f}i".format(*self.to_plane_coords(*pygame.mouse.get_pos())),"c = {: .2f}{:+.2f}i".format(self.c.real, self.c.imag))
+        self.update_label()
                     
-    def leave(self, event):
-        self.update_label("click to set c", "c = {: .2f}{:+.2f}i".format(self.c.real, self.c.imag))
-
-    def update_label(self, left, right):
+    def update_label(self, left=None, right=None):
         self.label.fill(self.label_bg)
+        if left is None:
+            if pygame.mouse.get_focused():
+                left = "pointer: {: .2f}{:+.2f}i".format(*self.to_plane_coords(*pygame.mouse.get_pos()))
+            else:
+                left = "click to set c"
+        if right is None:
+            right = "c = {: .2f}{:+.2f}i".format(self.c.real, self.c.imag)
         text_left = self.font.render(left,True,(0,0,0), self.label_bg)
         text_right = self.font.render(right,True,(0,0,0), self.label_bg)
         width = text_right.get_width()
